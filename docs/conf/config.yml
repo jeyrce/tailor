@@ -1,0 +1,49 @@
+# promtail 的api设置
+server:
+  disable: false
+  http_listen_address: 0.0.0.0
+  http_listen_port: 15004
+  grpc_listen_address: 0.0.0.0
+  grpc_listen_port: 15005
+  register_instrumentation: true
+  graceful_shutdown_timeout: 30s
+  http_server_read_timeout: 30s
+  http_server_write_timeout: 30s
+  http_server_idle_timeout: 120s
+  grpc_server_max_recv_msg_size: 4194304
+  grpc_server_max_send_msg_size: 4194304
+  grpc_server_max_concurrent_streams: 100
+  log_level: info
+  http_path_prefix: promtail
+  health_check_target: true
+
+# 推送目标设置, 当前仅推送至本机代理服务 `tailor`, 由tailor 分发给多个 Loki 实例
+clients:
+  # Example: http://example.com:3100/loki/api/v1/push
+  - url: http://127.0.0.1:15100/tailor/api/v1/loki/log
+    tenant_id: ""
+    batchwait: 1s
+    batchsize: 102400
+    backoff_config:
+      min_period: 500ms
+      max_period: 1m
+      max_retries: 10
+    external_labels:
+      product: qdm
+    timeout: 10s
+  positions:
+    filename: /var/log/positions.yml
+    sync_period: 10s
+    ignore_invalid_yaml: false
+
+# 需要采集的目标日志文件对象, 采用file_sd_config的方式来发现
+scrape_configs:
+  - job_name: local # 用于在 Promtail 中识别该抓取配置的名称。
+    file_sd_configs:
+      files:
+        - ./target/*.yml
+      refresh_interval: 1m
+
+# 控制对目标日志的读取行为,当前只有一个对文件的监听时间
+target_config:
+  sync_period: 10s
