@@ -1,0 +1,8 @@
+*.log
+*.tmp
+*.iml
+*.xml
+.idea/
+*.swap
+.DS_Store
+_output/*

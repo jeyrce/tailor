@@ -1,0 +1,11 @@
+# promtail 示例采集
+- targets:
+    - localhost
+  labels:
+    __path__: /var/log/messages
+    name: system
+- targets:
+    - localhost
+  labels:
+    __path__: /var/log/secure
+    name: secure

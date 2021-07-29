@@ -1,0 +1,18 @@
+server:
+  http_listen_port: 15004
+  grpc_listen_port: 15005
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:20015/loki/api/v1/push
+
+scrape_configs:
+  - job_name: testlog
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: testlog
+          __path__: /tmp/test*.log
