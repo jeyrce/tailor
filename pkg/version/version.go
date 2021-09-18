@@ -17,7 +17,7 @@ var (
 	CommitID     string
 	// 输出的版本信息模板
 	tmpl = `
-{{.program}}, version {{.version}} (branch: {{.branch}}, revision: {{.commitID}})
+{{.program}}, version {{.version}} (branch: {{.branch}}, revision: {{.revision}})
     build user:       {{.user}}
     build date:       {{.buildDate}}
     go version:       {{.goVersion}}
@@ -31,7 +31,7 @@ func Version(program string) string {
 		"version":   BuildVersion,
 		"revision":  CommitID,
 		"branch":    Branch,
-		"buildUser": BuildUser,
+		"user":      BuildUser,
 		"buildDate": BuildDate,
 		"goVersion": goVersion,
 	}
@@ -42,4 +42,27 @@ func Version(program string) string {
 		panic(err)
 	}
 	return strings.TrimSpace(buf.String())
+}
+
+// version接口响应
+type Struct struct {
+	Program   string `json:"program" example:"tailor"`                // 服务名称
+	Version   string `json:"version" example:"v0.1.0"`                // 软件版本
+	Branch    string `json:"branch" example:"master"`                 // 构建代码分支
+	Revision  string `json:"revision"  example:"h36dj82j78"`          // 代码CommitID
+	BuildUser string `json:"buildUser" example:"Jeyrce.Lu"`           // 构建用户
+	BuildDate string `json:"buildDate" example:"2021-08-08 01:02:03"` // 构建时间
+	GoVersion string `json:"goVersion" example:"linux/amd64 1.16.2"`  // 构建时go版本
+}
+
+func Context(program string) Struct {
+	return Struct{
+		Program:   program,
+		Version:   BuildVersion,
+		Branch:    Branch,
+		Revision:  CommitID,
+		BuildUser: BuildUser,
+		BuildDate: BuildDate,
+		GoVersion: goVersion,
+	}
 }

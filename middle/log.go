@@ -45,7 +45,7 @@ func requestLog(logger *zap.SugaredLogger) gin.HandlerFunc {
 			if raw != "" {
 				path = path + "?" + raw
 			}
-			logWith("接收到请求", "method", c.Request.Method, "ip", c.ClientIP(),
+			logWith(path, "method", c.Request.Method, "ip", c.ClientIP(),
 				"code", statusCode, "duration", fmt.Sprintf("%v", end.Sub(start)),
 			)
 		}

@@ -1,0 +1,79 @@
+# loki 示例配置文件
+target: all
+auth_enabled: false
+
+# 配置loki的api服务
+server:
+  http_listen_port: 20015
+  grpc_listen_port: 20016
+  http_path_prefix: /loki/
+
+# 配置日志数据提取
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 3
+    final_sleep: 30s
+  chunk_idle_period: 1h
+  max_chunk_age: 1h
+  chunk_target_size: 1048576
+  chunk_retain_period: 30s
+
+# 存储配置
+storage_config:
+  filesystem:
+    directory: /loki/chunks
+  boltdb:
+    directory: /loki/index
+
+# 存储规则配置, 其中的filesystem和boltdb必须在storage_config同时定义
+schema_config:
+  configs:
+    - from: 2021-08-08
+      store: boltdb
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+      chunks:
+        prefix: chunk_
+        period: 24h
+      row_shards: 16
+
+# 索引定期压缩配置
+compactor:
+  working_directory: /loki/compactor
+  shared_store: filesystem
+
+# 全局或租户限制
+limits_config:
+  # 数据存储一个月
+  retention_period: 744h
+
+# 表管理配置
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 72h
+
+# 告警规则和指标重构规则
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
+  evaluation_interval: 1m
+  poll_interval: 1m
+  rule_path: /loki/rules-temp
+  alertmanager_url: http://10.10.168.77:20012/alertmanager/
+  enable_alertmanager_v2: true
+  for_outage_tolerance: 30m
+  for_grace_period: 1m
+  ring:
+    kvstore:
+      store: inmemory
+      prefix: rulers/
+  enable_api: true
+  flush_period: 1m

@@ -1,0 +1,261 @@
+definitions:
+  logproto.PushRequest:
+    properties:
+      streams:
+        items:
+          type: Stream
+        type: array
+    type: object
+  proxy.AppCore:
+    properties:
+      checkUrl:
+        description: 主动探活的api
+        type: string
+      paths:
+        description: 该loki对象需要监听的日志文件
+        items:
+          type: string
+        type: array
+      url:
+        description: 目标loki的推送地址
+        type: string
+    type: object
+  proxy.Application:
+    properties:
+      checkUrl:
+        description: 主动探活的api
+        type: string
+      lastTime:
+        description: 最后注册时间
+        type: integer
+      paths:
+        description: 该loki对象需要监听的日志文件
+        items:
+          type: string
+        type: array
+      url:
+        description: 目标loki的推送地址
+        type: string
+    type: object
+  v1.AppIdentifier:
+    properties:
+      name:
+        example: http://127.0.0.1:20015/loki/loki/api/v1/push
+        type: string
+    type: object
+  v1.Response:
+    properties:
+      code:
+        description: 响应业务码, 正常时为0
+        example: 0
+        type: integer
+      data:
+        description: 当正常响应时返回对应数据
+        type: object
+      message:
+        description: 当出现问题时给出错误提示
+        example: '-'
+        type: string
+      succeed:
+        description: 响应是否成功
+        example: true
+        type: boolean
+    type: object
+  version.Struct:
+    properties:
+      branch:
+        description: 构建代码分支
+        example: master
+        type: string
+      buildDate:
+        description: 构建时间
+        example: "2021-08-08 01:02:03"
+        type: string
+      buildUser:
+        description: 构建用户
+        example: Jeyrce.Lu
+        type: string
+      goVersion:
+        description: 构建时go版本
+        example: linux/amd64 1.16.2
+        type: string
+      program:
+        description: 服务名称
+        example: tailor
+        type: string
+      revision:
+        description: 代码CommitID
+        example: h36dj82j78
+        type: string
+      version:
+        description: 软件版本
+        example: v0.1.0
+        type: string
+    type: object
+info:
+  contact: {}
+  license: {}
+paths:
+  /index/ready:
+    get:
+      description: 响应2xx则代表当前应用正常
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "400":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 查询tailor应用是否正常
+      tags:
+      - Index
+  /index/version:
+    get:
+      description: 等同于 --version 方式, 但是通过api返回
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功响应
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/version.Struct'
+              type: object
+        "400":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 查询该软件版本信息
+      tags:
+      - Index
+  /prom/app:
+    delete:
+      description: 通过传递服务名称,主动将已注册服务下线
+      parameters:
+      - description: 服务名称(服务推送url)
+        in: body
+        name: name
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AppIdentifier'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "400":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 已注册服务下线
+      tags:
+      - Prom
+    get:
+      description: 查询查询所有已注册应用, 因为注册行为是幂等的, 因此不提供接口查询自身是否已经注册
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功响应
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/proxy.Application'
+                  type: array
+              type: object
+        "400":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 查询所有已注册应用
+      tags:
+      - Prom
+    post:
+      description: 接收来自管理节点的注册请求,将Loki实例注册到全局注册表
+      parameters:
+      - description: body参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/proxy.AppCore'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/proxy.Application'
+              type: object
+        "400":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 注册监听对象
+      tags:
+      - Prom
+  /prom/push:
+    post:
+      description: 该接口供promtail的webhook使用
+      parameters:
+      - description: 日志流格式
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/logproto.PushRequest'
+      produces:
+      - application/x-protobuf
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "400":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 转发到目标loki
+      tags:
+      - Prom
+swagger: "2.0"

@@ -1,0 +1,10 @@
+groups:
+  - name: default
+    rules:
+      - alert: keyword-error
+        expr: sum(count_over_time({name="3"} |~ "error"[1m])) > 0
+        for: 0
+        labels:
+          severity: warn
+        annotations:
+          message: 捕获到过去几分钟日志中出现关键字{{$value}}次

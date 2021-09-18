@@ -14,13 +14,13 @@ server:
   grpc_server_max_send_msg_size: 4194304
   grpc_server_max_concurrent_streams: 100
   log_level: info
-  http_path_prefix: promtail
+  http_path_prefix: /promtail/
   health_check_target: true
 
 # 推送目标设置, 当前仅推送至本机代理服务 `tailor`, 由tailor 分发给多个 Loki 实例
 clients:
   # Example: http://example.com:3100/loki/api/v1/push
-  - url: http://127.0.0.1:15100/tailor/api/v1/loki/log
+  - url: http://127.0.0.1:15100/tailor/api/v1/prom/push
     tenant_id: ""
     batchwait: 1s
     batchsize: 102400
@@ -31,18 +31,19 @@ clients:
     external_labels:
       product: qdm
     timeout: 10s
-  positions:
-    filename: /var/log/positions.yml
-    sync_period: 10s
-    ignore_invalid_yaml: false
+
+positions:
+  filename: /var/log/positions.yml
+  sync_period: 10s
+  ignore_invalid_yaml: false
 
 # 需要采集的目标日志文件对象, 采用file_sd_config的方式来发现
 scrape_configs:
-  - job_name: local # 用于在 Promtail 中识别该抓取配置的名称。
+  - job_name: local
     file_sd_configs:
-      files:
+      - files:
         - ./target/*.yml
-      refresh_interval: 1m
+        refresh_interval: 1m
 
 # 控制对目标日志的读取行为,当前只有一个对文件的监听时间
 target_config:

@@ -3,7 +3,7 @@ WORKDIR /GoProject/src/github.com/woqutech/tailor
 ENV GOPATH=/GoProject
 ENV GOPROXY=https://goproxy.io
 ARG archive
-COPY ./ /GoProject/src/github.com/woqutech/whitebox_exporter/
+COPY ./ /GoProject/src/github.com/woqutech/tailor/
 RUN make build archive=${archive}
 
 FROM registry.woqutech.com/google_containers/alpine:3.10 as prod

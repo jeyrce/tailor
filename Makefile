@@ -23,11 +23,11 @@ build_arm:
 .PHONY: build
 build:
 	CGO_ENABLED=0 GOOS=linux GOARCH=${archive} go build -ldflags " \
-		-X github.com/prometheus/common/version.Version=${ImageVersion} \
-		-X github.com/prometheus/common/version.Revision=${CommitID} \
-		-X github.com/prometheus/common/version.Branch=${Branch} \
-		-X github.com/prometheus/common/version.BuildUser=${BuildUser} \
-		-X github.com/prometheus/common/version.BuildDate=${BuildDate} \
+		-X woqutech.com/tailor/pkg/version.BuildVersion=${ImageVersion} \
+		-X woqutech.com/tailor/pkg/version.BuildDate=${BuildDate} \
+		-X woqutech.com/tailor/pkg/version.BuildUser=${BuildUser} \
+		-X woqutech.com/tailor/pkg/version.Branch=${Branch} \
+		-X woqutech.com/tailor/pkg/version.CommitID=${CommitID} \
 	"  -o _output/tailor-${ImageVersion}-${archive} tailor.go
 
 .PHONY: clean
@@ -50,7 +50,7 @@ image:
 
 .PHONY: version
 version:
-	echo ${ImageVersion}
+	@echo ${ImageVersion}
 
 .PHONY: upload
 upload:
@@ -64,3 +64,7 @@ upload_x86:
 .PHONY: upload_arm
 upload_arm:
 	make upload archive=arm64
+
+.PHONY: swagger
+swagger:
+	swag init -g tailor.go
