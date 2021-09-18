@@ -48,7 +48,7 @@ const (
 )
 
 var (
-	logFormat = kingpin.Flag("log.format", "日志格式,支持: "+strings.Join([]string{jsonStyle, consoleStyle}, "|")).Short('l').Default(consoleStyle).Enum(jsonStyle, consoleStyle)
+	logFormat = kingpin.Flag("log.format", "日志格式,支持: "+strings.Join([]string{jsonStyle, consoleStyle}, "|")).Default(consoleStyle).Enum(jsonStyle, consoleStyle)
 	logDir    = kingpin.Flag("log.dir", "日志存储路径").Default("/var/log/").String()
 	// logger 单例模式
 	once   sync.Once
@@ -97,7 +97,7 @@ func newRotateWriter(filename string) io.Writer {
 	return &lumberjack.Logger{
 		Filename:   path.Join(*logDir, filename), // 日志文件
 		MaxSize:    20 * 1 << 20,                 // 保存的文件最大大小
-		MaxAge:     7,                            // 保存天数
+		MaxAge:     10,                           // 保存天数, 兼顾春节,国庆假期
 		MaxBackups: 20,                           // 保存日志数量
 		LocalTime:  true,                         // 使用系统本地时间
 		Compress:   false,                        // 开启gz压缩

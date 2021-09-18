@@ -1,0 +1,399 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {},
+        "license": {}
+    },
+    "paths": {
+        "/index/ready": {
+            "get": {
+                "description": "响应2xx则代表当前应用正常",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Index"
+                ],
+                "summary": "查询tailor应用是否正常",
+                "responses": {
+                    "200": {
+                        "description": "成功响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/index/version": {
+            "get": {
+                "description": "等同于 --version 方式, 但是通过api返回",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Index"
+                ],
+                "summary": "查询该软件版本信息",
+                "responses": {
+                    "200": {
+                        "description": "成功响应",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/version.Struct"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/prom/app": {
+            "get": {
+                "description": "查询查询所有已注册应用, 因为注册行为是幂等的, 因此不提供接口查询自身是否已经注册",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Prom"
+                ],
+                "summary": "查询所有已注册应用",
+                "responses": {
+                    "200": {
+                        "description": "成功响应",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/proxy.Application"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "接收来自管理节点的注册请求,将Loki实例注册到全局注册表",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Prom"
+                ],
+                "summary": "注册监听对象",
+                "parameters": [
+                    {
+                        "description": "body参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/proxy.AppCore"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/proxy.Application"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "通过传递服务名称,主动将已注册服务下线",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Prom"
+                ],
+                "summary": "已注册服务下线",
+                "parameters": [
+                    {
+                        "description": "服务名称(服务推送url)",
+                        "name": "name",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AppIdentifier"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/prom/push": {
+            "post": {
+                "description": "该接口供promtail的webhook使用",
+                "produces": [
+                    "application/x-protobuf"
+                ],
+                "tags": [
+                    "Prom"
+                ],
+                "summary": "转发到目标loki",
+                "parameters": [
+                    {
+                        "description": "日志流格式",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/logproto.PushRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "失败响应",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "logproto.PushRequest": {
+            "type": "object",
+            "properties": {
+                "streams": {
+                    "type": "array",
+                    "items": {
+                        "type": "Stream"
+                    }
+                }
+            }
+        },
+        "proxy.AppCore": {
+            "type": "object",
+            "properties": {
+                "checkUrl": {
+                    "description": "主动探活的api",
+                    "type": "string"
+                },
+                "paths": {
+                    "description": "该loki对象需要监听的日志文件",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "url": {
+                    "description": "目标loki的推送地址",
+                    "type": "string"
+                }
+            }
+        },
+        "proxy.Application": {
+            "type": "object",
+            "properties": {
+                "checkUrl": {
+                    "description": "主动探活的api",
+                    "type": "string"
+                },
+                "lastTime": {
+                    "description": "最后注册时间",
+                    "type": "integer"
+                },
+                "paths": {
+                    "description": "该loki对象需要监听的日志文件",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "url": {
+                    "description": "目标loki的推送地址",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AppIdentifier": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "http://127.0.0.1:20015/loki/loki/api/v1/push"
+                }
+            }
+        },
+        "v1.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "响应业务码, 正常时为0",
+                    "type": "integer",
+                    "example": 0
+                },
+                "data": {
+                    "description": "当正常响应时返回对应数据",
+                    "type": "object"
+                },
+                "message": {
+                    "description": "当出现问题时给出错误提示",
+                    "type": "string",
+                    "example": "-"
+                },
+                "succeed": {
+                    "description": "响应是否成功",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "version.Struct": {
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "description": "构建代码分支",
+                    "type": "string",
+                    "example": "master"
+                },
+                "buildDate": {
+                    "description": "构建时间",
+                    "type": "string",
+                    "example": "2021-08-08 01:02:03"
+                },
+                "buildUser": {
+                    "description": "构建用户",
+                    "type": "string",
+                    "example": "Jeyrce.Lu"
+                },
+                "goVersion": {
+                    "description": "构建时go版本",
+                    "type": "string",
+                    "example": "linux/amd64 1.16.2"
+                },
+                "program": {
+                    "description": "服务名称",
+                    "type": "string",
+                    "example": "tailor"
+                },
+                "revision": {
+                    "description": "代码CommitID",
+                    "type": "string",
+                    "example": "h36dj82j78"
+                },
+                "version": {
+                    "description": "软件版本",
+                    "type": "string",
+                    "example": "v0.1.0"
+                }
+            }
+        }
+    }
+}

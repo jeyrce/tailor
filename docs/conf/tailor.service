@@ -1,0 +1,20 @@
+[Unit]
+Description=Tailor
+Documentation=https://www.woqutech.com/
+Wants=network-online.target
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/root/app/loki/tailor-v0.1.0-amd64 \
+          --log.format=json \
+          --log.dir=/var/log/tailor/
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+Alias=Tailor
