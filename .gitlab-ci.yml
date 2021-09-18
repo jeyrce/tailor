@@ -1,0 +1,41 @@
+---
+image: registry.woqutech.com/woqutech/runner:v2.0.0
+
+variables:
+  EVENT_SERVER: "http://basebuild-listener.qfusioncicd.woqutech.com:30318"
+  TEKTON_SERVER: "http://10.10.40.222:30432"
+  LOG_LEVEL: 20  # info
+
+# CI/CD执行步骤
+stages:
+  - build
+
+# 镜像发布(自动)
+build:
+  stage: build
+  variables:
+    # docker connect address
+    DOCKER_HOST: tcp://docker_server:2375
+    # This will instruct Docker not to start over TLS.
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - name: registry.woqutech.com/qdata/qdata_docker_builder_server:v0.0.1
+      alias: docker_server
+  image: registry.woqutech.com/qdata/qdata_docker_builder_client:v0.0.1
+  before_script:
+    - docker version
+    - docker images
+  script:
+    - make release
+  tags:
+    - qdata-docker
+
+
+release_for_qfusion:
+  stage: build
+  script:
+    - echo "do project build"
+    - python3 /scripts/run.py cloud-event $CI_PROJECT_URL $CI_PROJECT_NAME $CI_COMMIT_SHA
+  tags:
+    - qdata-docker
+
