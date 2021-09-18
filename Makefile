@@ -45,8 +45,8 @@ fmt:
 
 .PHONY: image
 image:
-	sudo docker build --build-arg ImageVersion=$(ImageVersion) --build-arg archive=amd64 -t ${ImageName} .
-	sudo docker push ${ImageName}
+	docker build --build-arg ImageVersion=$(ImageVersion) --build-arg archive=amd64 -t ${ImageName} .
+	docker push ${ImageName}
 
 .PHONY: version
 version:
