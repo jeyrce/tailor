@@ -28,7 +28,7 @@ build:
 		-X woqutech.com/tailor/pkg/version.BuildUser=${BuildUser} \
 		-X woqutech.com/tailor/pkg/version.Branch=${Branch} \
 		-X woqutech.com/tailor/pkg/version.CommitID=${CommitID} \
-	"  -o _output/tailor-${ImageVersion}-${archive} tailor.go
+	"  -o _output/tailor tailor.go
 
 .PHONY: clean
 clean:
