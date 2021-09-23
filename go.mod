@@ -10,6 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.7.3
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-playground/validator/v10 v10.8.0 // indirect
+	github.com/gobuffalo/packr/v2 v2.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/grafana/loki v1.6.2-0.20210802080050-138ca71dd527
@@ -31,4 +32,5 @@ require (
 	golang.org/x/tools v0.1.5 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

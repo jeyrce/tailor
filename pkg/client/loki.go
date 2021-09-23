@@ -41,7 +41,7 @@ func SendLog(url string, buf []byte) error {
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode/100 != 2 {
 		return errors.New(string(all))
 	}

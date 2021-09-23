@@ -100,6 +100,6 @@ func newRotateWriter(filename string) io.Writer {
 		MaxAge:     10,                           // 保存天数, 兼顾春节,国庆假期
 		MaxBackups: 20,                           // 保存日志数量
 		LocalTime:  true,                         // 使用系统本地时间
-		Compress:   false,                        // 开启gz压缩
+		Compress:   true,                         // 开启gz压缩
 	}
 }

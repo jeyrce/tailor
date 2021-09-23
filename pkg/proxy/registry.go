@@ -1,6 +1,8 @@
 package proxy
 
 import (
+	"net/url"
+	"sort"
 	"sync"
 	"time"
 
@@ -22,11 +24,13 @@ var (
 const (
 	DefaultTTL    = time.Second * 60 // 默认单次续约的有效时间
 	FilenameLabel = "filename"       // 日志流文件名标签
+	IPLabel       = "targetIP"       // app标签中一体机节点ip标签名
 )
 
 // 注册表
 type Registry struct {
-	Apps map[string]*Application // 应用实例, key作为实例身份标识
+	ip   string                  // 本机ip
+	apps map[string]*Application // 应用实例, key作为实例身份标识
 	lock sync.RWMutex            // 读写锁, 防止并发问题
 }
 
@@ -34,7 +38,7 @@ type Registry struct {
 func NewRegistry() *Registry {
 	once.Do(func() {
 		registry := Registry{
-			Apps: make(map[string]*Application),
+			apps: make(map[string]*Application),
 			lock: sync.RWMutex{},
 		}
 		GlobalRegistry = &registry
@@ -46,19 +50,23 @@ func NewRegistry() *Registry {
 func (r *Registry) Register(a AppCore) error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	var app Application
+	// 检查数量是否超限
 	if *promMaxLokiNum > 0 {
-		// 添加后数量会超限
-		if _, in := r.Apps[a.URL]; !in && len(r.Apps) >= *promMaxLokiNum {
-			return new(v1.AppNumLimited)
+		if _, in := r.apps[a.URL]; !in && len(r.apps) >= *promMaxLokiNum {
+			return v1.AppNumLimited{}
 		}
 	}
-	app = Application{
-		AppCore: a,
-		AppMeta: AppMeta{RegAt: time.Now().Unix(), Failed: 0},
-		lock:    sync.RWMutex{},
+	// 检查路径是否合法
+	_, err1 := url.Parse(a.URL)
+	_, err2 := url.Parse(a.CheckURL)
+	if err1 != nil || err2 != nil {
+		return v1.InvalidLokiUrl{err1, err2}
 	}
-	r.Apps[app.Name()] = &app
+	app := NewAPP(a)
+	r.apps[app.Name()] = app
+	if ip := app.Labels[IPLabel]; r.ip == "" && ip != "" {
+		r.ip = ip
+	}
 	return nil
 }
 
@@ -67,7 +75,7 @@ func (r *Registry) Fetch(name string) []*Application {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	var apps = make([]*Application, 0)
-	for _, app := range r.Apps {
+	for _, app := range r.apps {
 		if name == app.Name() {
 			apps = append(apps, app)
 			break
@@ -83,7 +91,7 @@ func (r *Registry) Fetch(name string) []*Application {
 func (r *Registry) Cancel(name string) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	delete(r.Apps, name)
+	delete(r.apps, name)
 }
 
 // 数据分发给各个loki对象
@@ -93,7 +101,7 @@ func (r *Registry) Dispatch(streams logproto.PushRequest) {
 	// 如果app状态是ok并且当前日志路径在app的监控对象中, 则推送对应的流数据
 	wg := sync.WaitGroup{}
 	var count = 0
-	for _, app := range r.Apps {
+	for _, app := range r.apps {
 		appS := make([]logproto.Stream, 0)
 		for _, stream := range streams.Streams {
 			labels, err := logql.ParseLabels(stream.Labels)
@@ -120,4 +128,44 @@ func (r *Registry) Dispatch(streams logproto.PushRequest) {
 	}
 	wg.Wait()
 	log.Logger.Infof("共计[%d]条记录转发", count)
+}
+
+// 聚合日志路径
+func (r *Registry) PathSet() []string {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	var (
+		items = make(map[string]struct{})
+		paths = make([]string, 0)
+	)
+	for _, app := range r.apps {
+		for _, path := range app.Paths {
+			oldLen := len(items)
+			items[path] = struct{}{}
+			newLen := len(items)
+			if oldLen != newLen {
+				paths = append(paths, path)
+			}
+		}
+	}
+	sort.SliceStable(paths, func(i, j int) bool { return paths[i] < paths[j] })
+	return paths
+}
+
+// 重新构建配置文件
+func (r *Registry) Build() error {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	var wg = sync.WaitGroup{}
+	for _, app := range r.apps {
+		go func(a *Application) {
+			if err := a.Build(); err != nil {
+				log.Logger.Errorf("目标构建失败[%s]: %s", a.Name(), err)
+			}
+			wg.Done()
+		}(app)
+		wg.Add(1)
+	}
+	wg.Wait()
+	return nil
 }

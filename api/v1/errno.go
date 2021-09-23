@@ -13,4 +13,5 @@ const (
 	// 依次递增的错误码
 	dataMarshalError = 10000 + iota
 	appNumLimited
+	invalidLokiUrl
 )

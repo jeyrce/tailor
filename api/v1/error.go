@@ -63,3 +63,18 @@ func (a AppNumLimited) Code() int32 {
 func (a AppNumLimited) RawError() E {
 	return E(a)
 }
+
+// loki 地址不合法
+type InvalidLokiUrl E
+
+func (i InvalidLokiUrl) Error() string {
+	return "Loki地址不合法"
+}
+
+func (i InvalidLokiUrl) Code() int32 {
+	return invalidLokiUrl
+}
+
+func (i InvalidLokiUrl) RawError() E {
+	return E(i)
+}
