@@ -25,7 +25,7 @@ func (r *RegistryLoop) Stop() {
 }
 
 // - 定时清理无效loki实例
-// - todo: 定时重写promtail的配置
+// - 定时重写promtail的配置
 func (r *RegistryLoop) Run() {
 	health := time.NewTicker(r.healthInterval)
 	defer health.Stop()
@@ -55,9 +55,11 @@ func (r *RegistryLoop) Run() {
 				"deleted", len(pending),
 				"duration", time.Since(point).Milliseconds(),
 			)
-		case point := <-build.C:
-			log.Logger.Infow("重构监听配置", "time", point)
-			// todo:
+		case <-build.C:
+			log.Logger.Infow("重构监听配置")
+			if err := proxy.GlobalRegistry.Build(); err != nil {
+				log.Logger.Errorf("构建失败: %v", err)
+			}
 		}
 	}
 }
