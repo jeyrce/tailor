@@ -213,7 +213,7 @@ func (app *Application) Build() error {
 	m.Write(marshal)
 	fingerprint := hex.EncodeToString(m.Sum(nil))
 	if app.Hash != fingerprint {
-		if err := os.WriteFile(path.Join(*promTargetDir, app.Name(), ".yml"), marshal, os.FileMode(os.O_RDWR)); err != nil {
+		if err := os.WriteFile(path.Join(*promTargetDir, app.Name()+".yml"), marshal, os.FileMode(os.O_RDWR)); err != nil {
 			return err
 		}
 		app.Hash = fingerprint
