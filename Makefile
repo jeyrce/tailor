@@ -54,7 +54,7 @@ version:
 
 .PHONY: upload
 upload:
-	curl -u common:cljslrl0620 -T _output/tailor-${ImageVersion}-${archive}  http://mirrors.woqutech.com/remote.php/dav/files/common/Loki/
+	curl -u woqutech:cljslrl0620 -T _output/tailor-${ImageVersion}-${archive}  http://mirrors.woqutech.com/remote.php/dav/files/woqutech/tailor/
 
 .PHONY: upload_x86
 upload_x86:
