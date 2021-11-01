@@ -158,13 +158,13 @@ func (r *Registry) Build() error {
 	defer r.lock.Unlock()
 	var wg = sync.WaitGroup{}
 	for _, app := range r.apps {
+		wg.Add(1)
 		go func(a *Application) {
 			if err := a.Build(); err != nil {
 				log.Logger.Errorf("目标构建失败[%s]: %s", a.Name(), err)
 			}
 			wg.Done()
 		}(app)
-		wg.Add(1)
 	}
 	wg.Wait()
 	return nil

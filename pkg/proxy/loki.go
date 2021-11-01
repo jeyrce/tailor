@@ -199,8 +199,8 @@ func (app *Application) Build() error {
 		targets = append(targets, Target{
 			Targets: []string{"localhost"},
 			Labels: Labels{
-				Path: p,
-				IP:   app.Labels[IPLabel],
+				Path:   p,
+				NodeIP: app.Labels[IPLabel],
 			},
 		})
 	}
@@ -213,7 +213,7 @@ func (app *Application) Build() error {
 	m.Write(marshal)
 	fingerprint := hex.EncodeToString(m.Sum(nil))
 	if app.Hash != fingerprint {
-		if err := os.WriteFile(path.Join(*promTargetDir, app.Name()+".yml"), marshal, os.FileMode(os.O_RDWR)); err != nil {
+		if err := os.WriteFile(path.Join(*promTargetDir, app.Name()+".yml"), marshal, 0666); err != nil {
 			return err
 		}
 		app.Hash = fingerprint
@@ -223,8 +223,8 @@ func (app *Application) Build() error {
 
 // 固定日志监听文件的格式
 type Labels struct {
-	Path string `json:"__path__" yaml:"__path__"`
-	IP   string `json:"ip" yaml:"ip"`
+	Path   string `json:"__path__" yaml:"__path__"`
+	NodeIP string `json:"node_ip" yaml:"node_ip"`
 }
 
 // 创建每个日志监听文件格式
