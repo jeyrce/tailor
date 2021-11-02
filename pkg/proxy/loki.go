@@ -199,8 +199,8 @@ func (app *Application) Build() error {
 		targets = append(targets, Target{
 			Targets: []string{"localhost"},
 			Labels: Labels{
-				Path:   p,
-				NodeIP: app.Labels[IPLabel],
+				Path:     p,
+				TargetIP: app.Labels[IPLabel],
 			},
 		})
 	}
@@ -223,8 +223,8 @@ func (app *Application) Build() error {
 
 // 固定日志监听文件的格式
 type Labels struct {
-	Path   string `json:"__path__" yaml:"__path__"`
-	NodeIP string `json:"node_ip" yaml:"node_ip"`
+	Path     string `json:"__path__" yaml:"__path__"`
+	TargetIP string `json:"targetIP" yaml:"targetIP"`
 }
 
 // 创建每个日志监听文件格式
